@@ -1,0 +1,110 @@
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+// use Illuminate\Support\Facades\Auth;
+
+// use Illuminate\Http\Request;
+
+class AuthController extends Controller
+{
+    public function dashboard(){
+        return view('dashboard');
+    }
+
+    public function login(Request $request)
+    {
+    //     // $name = $request->input('name');
+    //     // $password = $request->input('password');
+
+    //     // $user = User::where('password', $password)->first();
+
+    //     // if ($user && $user->name === $name) {
+    //     //     // session(['id' => $user->id]);
+    //     //     return redirect()->route('dashboard');
+    //     // }else {
+    //     //     return redirect()->back()->with('error', 'Invalid credentials');
+    //     // }
+
+    //     $credentials = $request->only('name', 'password');
+
+    // if (Auth::attempt($credentials)) {
+    //     $request->session()->regenerate(); // security
+
+    //     return redirect()->route('dashboard');
+    // }
+
+    // return back()->with('error', 'Invalid credentials');
+
+
+    //     // $name = $request->input('name');
+    //     // $password = $request->input('password');
+
+    //     // $user = User::where('name', $name)->first();
+
+    //     // if ($user && Hash::check($password, $user->password)) {
+
+    //     //     session(['id' => $user->id]);
+
+    //     //     return redirect()->route('dashboard');
+    //     // }
+
+    //     // return redirect()->back()->with('error', 'Invalid credentials');
+
+        $request->validate([
+        'name' => 'required',
+        'password' => 'required'
+    ]);
+
+    $user = User::where('name', $request->name)->first();
+
+    if ($user && Hash::check($request->password, $user->password)) {
+
+            $userid = $user->id;
+            $username = $user->name;
+            session(['id' => $userid, 'name' => $username]);
+
+        return redirect()->route('dashboard');
+    }
+
+    return back()->with('error', 'Invalid credentials');
+
+    }
+
+    public function register(Request $request)
+    {
+        // $name = $request->input('name');
+        // $password = $request->input('password');
+        // $email = $request->input('email');
+
+        // $user = new User();
+        // $user->name = $name;
+        // $user->password = $password;
+        // $user->email = $email;
+        // $user->save();
+
+        // return redirect()->route('login');
+
+        $request->validate([
+        'name' => 'required|unique:users',
+        'password' => 'required|min:6'
+    ]);
+
+    User::create([
+        'name' => $request->name,
+        'password' => Hash::make($request->password)
+    ]);
+
+    return redirect('/')->with('success', 'Register success');
+    }
+
+    public function logout(Request $request)
+    {
+        $request->session()->flush();
+        return redirect('/');;
+    }
+}
