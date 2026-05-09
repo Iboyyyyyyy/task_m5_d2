@@ -7,7 +7,20 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <title>Product Management - POS System</title>
+    <title>Products</title>
+    <style>
+        @import url('https://rsms.me/inter/inter.css');
+
+        :root {
+            --tblr-font-sans-serif: 'Inter Var', -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif;
+        }
+
+        body {
+            font-feature-settings: "cv03", "cv04", "cv11";
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 
 <body class="bg-gray-100 font-sans"
@@ -67,7 +80,7 @@
 
                 <!-- Product Table Card -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <table class="w-full text-left">
+                    <table class="w-full text-left" id="productTable">
                         <thead class="bg-gray-50 border-b border-gray-100 text-gray-600 text-sm">
                             <tr>
                                 <th class="p-4 font-semibold">#</th>
@@ -89,17 +102,19 @@
                                 <td class="p-4">
                                     <span
                                         class="bg-blue-100 text-blue-600 px-2 py-1 rounded-md text-xs font-bold uppercase">
-                                        {{ $category->name ?? 'No Category' }}
+                                        {{ $pro->category?->name ?? 'No Category' }}
                                     </span>
                                 </td>
 
                                 <td class="p-4 font-bold">{{ $pro->qty }}</td>
 
                                 <td class="p-4 text-center">
-                                    <button @click="openEdit = true" class="text-blue-500 hover:text-blue-700 mx-2">
+                                    <button @click="openEdit = true"
+                                        class="text-blue-500 hover:text-blue-700 mx-2 btn-edit">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </button>
-                                    <button @click="openDelete = true" class="text-red-500 hover:text-red-700 mx-2">
+                                    <button @click="openDelete = true"
+                                        class="text-red-500 hover:text-red-700 mx-2 btn-delete">
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
                                 </td>
@@ -114,6 +129,7 @@
                             @endforelse
 
                         </tbody>
+
                     </table>
                 </div>
             </div>
@@ -199,6 +215,77 @@
         </div>
     </div>
 
+
+    <!-- MODAL: UPDATE PRODUCT -->
+    <div x-show="openEdit" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4" x-cloak>
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden" @click.away="openEdit = false">
+            <div class="p-6 border-b flex justify-between items-center bg-gray-50">
+                <h3 class="font-bold text-gray-800 uppercase">Update Product</h3>
+                <button @click="openEdit = false" class="text-gray-400 hover:text-gray-600"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form method="POST" id="editForm">
+                @csrf
+                @method('PUT')
+
+                <div class="p-6 space-y-4">
+                    <div>
+                        <input type="hidden" name="id" id="id">
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Product Name</label>
+                        <input type="text" name="name" id="name"
+                            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Product Code</label>
+                        <input type="text" name="code" id="code"
+                            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">Category</label>
+
+                            <select name="category_id" id="category_id"
+                                class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+
+                                <option value="">-- Select Category --</option>
+
+                                @foreach ($allcate as $allc)
+                                <option value="{{ $allc->id }}">
+                                    {{ $allc->name }}
+                                </option>
+                                @endforeach
+
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">Quantity</label>
+                            <input type="number" name="qty" min="0" id="qty" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500
+                                outline-none @error('qty') border-red-500 @enderror" required>
+
+                            @error('qty')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="p-6 border-t bg-gray-50 flex justify-end space-x-3">
+                    <button type="button" @click="openEdit = false" class="px-4 py-2 text-gray-600 font-semibold">
+                        Cancel
+                    </button>
+
+                    <button type="submit"
+                        class="bg-green-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition">
+                        Update
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- MODAL: DELETE POPUP -->
     <div x-show="openDelete"
         class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4" x-cloak>
@@ -207,14 +294,21 @@
                 class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
                 <i class="fa-solid fa-triangle-exclamation"></i>
             </div>
-            <h3 class="text-xl font-bold text-gray-800">Confirm Delete</h3>
-            <p class="text-gray-500 mt-2">Are you sure you want to delete this product? This action cannot be undone.
-            </p>
-            <div class="mt-6 flex justify-center space-x-3">
-                <button @click="openDelete = false" class="px-4 py-2 text-gray-500 font-semibold">Cancel</button>
-                <button class="bg-red-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-red-700 transition">Yes,
-                    Delete</button>
-            </div>
+            <form method="POST" id="deleteForm">
+                @csrf
+                @method('DELETE')
+                <input type="hidden" name="" id="id" name="id">
+                <h3 class="text-xl font-bold text-gray-800">Confirm Delete</h3>
+                <p class="text-gray-500 mt-2">Are you sure you want to delete this product? This action cannot be
+                    undone.
+                </p>
+                <div class="mt-6 flex justify-center space-x-3">
+                    <button type="submit"
+                        class="bg-red-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-red-700 transition">Yes,
+                        Delete</button>
+                </div>
+            </form>
+            <button @click="openDelete = false" class="px-4 py-2 text-gray-500 font-semibold">Cancel</button>
         </div>
     </div>
 
@@ -223,6 +317,44 @@
             display: none !important;
         }
     </style>
+
+
+    <script>
+        $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+    $('#productTable').on('click', '.btn-edit', function () {
+        let row = $(this).closest('tr');
+        let id = row.find('td').eq(0).text().trim();
+        let code = row.find('td').eq(1).text().trim();
+        let name = row.find('td').eq(2).text().trim();
+        let category = row.find('td').eq(3).text().trim();
+        let qty = row.find('td').eq(4).text().trim();
+
+        $('#id').val(id);
+        $('#code').val(code);
+        $('#name').val(name);
+        $('#category').val(category);
+        $('#qty').val(qty);
+
+        $('#editForm').attr('action', '/products/' + id);
+    });
+
+
+
+    $('#productTable').on('click', '.btn-delete', function () {
+        let row = $(this).closest('tr');
+        let id = row.find('td').eq(0).text().trim();
+
+        $('#delete_id').val(id);
+        $('#deleteForm').attr('action', '/products/' + id);
+
+        console.log($('#deleteForm').attr('action'));
+    });
+
+    </script>
 </body>
 
 </html>

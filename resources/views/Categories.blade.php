@@ -7,11 +7,23 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <title>Categories - POS System</title>
+    <title>Categories</title>
+    <style>
+        @import url('https://rsms.me/inter/inter.css');
+
+        :root {
+            --tblr-font-sans-serif: 'Inter Var', -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif;
+        }
+
+        body {
+            font-feature-settings: "cv03", "cv04", "cv11";
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 
-<body class="bg-gray-100 font-sans"
-    x-data="{ openAdd: false, openEdit: false, openDelete: false, currentCategory: {name: 'Drinks', id: 1} }">
+<body class="bg-gray-100 font-sans" x-data="{ openAdd: false, openEdit: false, openDelete: false }">
 
     <div class="flex min-h-screen">
         <!-- Sidebar (Same as Dashboard) -->
@@ -67,7 +79,7 @@
 
                 <!-- Category Table Card -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <table class="w-full text-left">
+                    <table class="w-full text-left" id="category">
                         <thead class="bg-gray-50 border-b border-gray-100 text-gray-600 text-sm">
                             <tr>
                                 <th class="p-4 font-semibold w-20">ID</th>
@@ -81,12 +93,12 @@
                                 <td class="p-4 text-gray-500">{{ $cate->id }}</td>
                                 <td class="p-4 font-medium text-gray-800">{{ $cate->name }}</td>
                                 <td class="p-4 text-center">
-                                    <button @click="openEdit = true"
-                                        class="text-blue-500 hover:text-blue-700 mx-2 transition">
+                                    <button @click="openEdit = true" id="edit"
+                                        class="text-blue-500 hover:text-blue-700 mx-2 transition btn-edit">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </button>
-                                    <button @click="openDelete = true"
-                                        class="text-red-500 hover:text-red-700 mx-2 transition">
+                                    <button @click="openDelete = true" id="delete"
+                                        class="text-red-500 hover:text-red-700 mx-2 transition btn-delete">
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
                                 </td>
@@ -139,16 +151,29 @@
                 <button @click="openEdit = false" class="text-gray-400 hover:text-gray-600"><i
                         class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="p-6">
-                <label class="block text-sm font-bold text-gray-700 mb-2">Category Name</label>
-                <input type="text" x-model="currentCategory.name"
-                    class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition">
-            </div>
-            <div class="p-6 border-t bg-gray-50 flex justify-end space-x-3">
-                <button @click="openEdit = false" class="px-4 py-2 text-gray-600 font-semibold">Cancel</button>
-                <button
-                    class="bg-green-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-green-700 transition">Update</button>
-            </div>
+            <form method="POST" id="editForm">
+                @csrf
+                @method('PUT')
+
+                <input type="hidden" id="id" name="id">
+
+                <div class="p-6">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Category Name</label>
+                    <input type="text" name="name" id="name"
+                        class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition">
+                </div>
+
+                <div class="p-6 border-t bg-gray-50 flex justify-end space-x-3">
+                    <button type="button" @click="openEdit = false" class="px-4 py-2 text-gray-600 font-semibold">
+                        Cancel
+                    </button>
+
+                    <button type="submit"
+                        class="bg-green-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-green-700 transition">
+                        Update
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -160,16 +185,30 @@
                 class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
                 <i class="fa-solid fa-trash-can"></i>
             </div>
-            <h3 class="text-xl font-bold text-gray-800">Delete Category?</h3>
-            <p class="text-gray-500 mt-2 text-sm">Are you sure you want to delete "<span x-text="currentCategory.name"
-                    class="font-bold"></span>"?</p>
-            <div class="mt-6 flex justify-center space-x-3">
-                <button @click="openDelete = false"
-                    class="px-4 py-2 text-gray-500 font-semibold text-sm">Cancel</button>
-                <button
-                    class="bg-red-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-red-700 transition text-sm">Yes,
-                    Delete</button>
-            </div>
+            <form method="POST" id="deleteForm">
+                @csrf
+                @method('DELETE')
+
+                <h3 class="text-xl font-bold text-gray-800">Delete Category?</h3>
+                <p class="text-gray-500 mt-2 text-sm text-center">
+                    Are you sure you want to delete ID:
+                    <input type="text" id="delete_id" name="id" style="color: red;"
+                        class="w-3 bg-transparent border-none font-bold text-gray-800 text-center focus:ring-0 focus:outline-none p-0 inline-block">
+                    ?
+                </p>
+
+                <div class="mt-6 flex justify-center space-x-3">
+                    <button type="button" @click="openDelete = false"
+                        class="px-4 py-2 text-gray-500 font-semibold text-sm">
+                        Cancel
+                    </button>
+
+                    <button type="submit"
+                        class="bg-red-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-red-700 transition text-sm">
+                        Yes, Delete
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -178,6 +217,42 @@
             display: none !important;
         }
     </style>
+
+    <script>
+        $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+    $('#category').on('click', '.btn-edit', function () {
+        var current_row = $(this).closest('tr');
+
+        var id = current_row.find('td').eq(0).text().trim();
+        var name = current_row.find('td').eq(1).text().trim();
+
+        $('#id').val(id);
+        $('#name').val(name);
+
+        // optional: set form action dynamically
+        $('#editForm').attr('action', '/categories/' + id);
+    });
+
+
+
+
+    $('#category').on('click', '.btn-delete', function () {
+        let row = $(this).closest('tr');
+        let id = row.find('td').eq(0).text().trim();
+
+        $('#delete_id').val(id);
+
+        $('#deleteForm').attr('action', '/categories/' + id);
+    });
+
+
+
+
+    </script>
 </body>
 
 </html>

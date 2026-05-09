@@ -29,10 +29,14 @@ Route::middleware(EnsureTokenIsValid::class)->group(function () {
 
     Route::get('/products', [ProductController::class, 'Product']);
     Route::post('/products', [ProductController::class, 'store'])->name('products.store');
+    Route::put('/products/{id}', [ProductController::class, 'update'])->name('products.update');
+    Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('products.destroy');
 
 
 
 
     Route::get('/categories', [CategoriesController::class, 'Categories'])->name('categories');
     Route::post('/categories', [CategoriesController::class, 'store'])->name('categories.store');
-});;
+    Route::put('/categories/{id}', [CategoriesController::class, 'update'])->name('categories.update');
+    Route::delete('/categories/{id}', [CategoriesController::class, 'destroy'])->name('categories.destroy');
+});

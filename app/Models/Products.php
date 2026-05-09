@@ -16,4 +16,9 @@ class Products extends Model
         'update_uid',
         'qty',
     ];
+
+    public function category()
+{
+    return $this->belongsTo(Categories::class, 'category_id');
+}
 }
